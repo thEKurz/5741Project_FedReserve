@@ -1,5 +1,5 @@
 # 5741Project_FederalReserve
-'What is the Federal actually doing?'
+'What is the Federal Reserve actually doing?'
 
 
 Evan Kurzman EHK73
