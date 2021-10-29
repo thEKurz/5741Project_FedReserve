@@ -37,3 +37,9 @@ for n in range(0,len(dflist)):
 Numerical_data_df.fillna(method='ffill',inplace=True)
 Numerical_data_df.fillna(0,inplace=True)
 Freq_data_df=Numerical_data_df.groupby(Numerical_data_df.index.to_period('M')).nth(0)
+I_var=['FEDFUNDS','FEDDT','FEDD10Y','RESPPNTNWW', 'M1SL','TREAST','TREAS10Y','TREAS1T5', 'TREAS5T10', 'TREAS911Y', 'MBS10Y']
+I_df=Freq_data_df[I_var]
+D_var=list(Freq_data_df.columns.difference(I_var).astype(str))
+D_df = Freq_data_df[Freq_data_df.columns.difference(I_var)]
+D_df.to_csv('Dependant_Numeric_Variables',index=True)
+I_df.to_csv('Independant_Numeric_Variables',index=True)
