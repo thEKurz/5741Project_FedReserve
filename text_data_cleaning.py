@@ -17,7 +17,7 @@ for m in months:
     i += 1
 year_reg = "[0-9]{4}"
 
-df_text = pd.DataFrame(columns = ["Year", "Month", "Sentiment"])
+df_text = pd.DataFrame(columns = ["Year", "Month", "Negative", "Neutral", "Positive"])
 
 num_files = 118
 for i in range(1, (num_files + 1)):
@@ -40,11 +40,10 @@ for i in range(1, (num_files + 1)):
             sentence += line
         
         senti = sid.polarity_scores(sentence)
-        senti_array = [senti['neg'], senti['neu'], senti['pos']]
         
         # The sentimental array has values in order "negative", "neutral", "positive"
     
-    df_text.loc[i-1] = [date_y, date_m, senti_array]
+    df_text.loc[i-1] = [date_y, date_m, senti['neg'], senti['neu'], senti['pos']]
 
 df_text['Date'] = pd.to_datetime(df_text[['Year', 'Month']].assign(DAY=1))
 df_text = df_text.set_index('Date')
