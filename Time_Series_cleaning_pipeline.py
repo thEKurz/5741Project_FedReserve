@@ -8,7 +8,7 @@ This is a temporary script file.
 
 import pandas as pd
 import glob
-files = glob.glob("C:/Users/evank/OneDrive/Documents/Academics/Cornell/Fall 2021/5741 Learning With Big Messy Data/Project/5741Project_FedReserve/CSV_Data/*.csv")
+files = glob.glob("CSV_Data/*.csv")
 
 dflist=[]
 
