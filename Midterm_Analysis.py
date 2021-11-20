@@ -74,3 +74,25 @@ for d in I_df_post_2003.columns:
     # Plotting the Autocorrelation plot.
     plt.show()
     plt.savefig("plots/PACF/Independant/PACF_"+ str(d) + ".png")
+    
+reg = LinearRegression()
+X_train=I_df_post_2003.iloc[:-24]
+Y_train=D_df_post_2003['GDP'].iloc[:-24]
+X_test=I_df_post_2003.iloc[-24:]
+Y_test=D_df_post_2003['GDP'].iloc[-24:]
+reg.fit(X_train, Y_train)
+y_1 = reg.predict(I_df_post_2003)
+print(np.linalg.norm(reg.predict(X_train)- Y_train)/len(Y_train))
+
+plt.scatter(X_train.index, Y_train, s=20, edgecolor="black",
+            c="darkorange", label="data")
+plt.plot(D_df_post_2003.index, y_1, color="cornflowerblue",
+         label="Lin Reg", linewidth=2)
+plt.scatter(X_test.index, Y_test, alpha=0.03, color='grey')
+plt.xlabel("Year")
+plt.ylabel("GDP")
+plt.title("Linear Regression")
+plt.legend()
+plt.show()
+plt.savefig("plots/LinReg__GDP.png")
+    
