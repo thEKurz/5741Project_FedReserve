@@ -65,14 +65,15 @@ I_df_LR_post_2003=I_df_linear_reg[~(I_df_linear_reg.index<'2003-01-01')]
 
 lasso_coef={}
 lasso_alpha={}
+lasso_model={}
 for y in D_df_post_2003.columns:
     X=scaler.fit_transform(I_df_LR_post_2003)
-    Y=scaler.fit_transform(D_df_post_2003[y])
+    Y=D_df_post_2003[y]
     X_train, X_test, y_train, y_test = train_test_split(np.array(X), np.array(Y), test_size=0.25, random_state=42)
-    reg = LassoCV(cv=5, random_state=0).fit(X_train, y_train)
-    lasso_coef[y]=reg.coef_
-    lasso_alpha[y]=reg.alpha_   
-    
+    y = LassoCV(cv=5, random_state=0,alphas=[.001,.01,.1,.2,.3,.4,.5,.6,.7,.8,.9,.99,.999,1]).fit(X_train, y_train)
+    lasso_coef[str(y)]=y.coef_
+    lasso_alpha[str(y)]=y.alpha_   
+    lasso_model[str(y)]=y
     
 def model_analysis(X,y):
 
