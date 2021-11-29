@@ -3,7 +3,7 @@ import numpy as np
 import sklearn
 import matplotlib.pyplot as plt
 
-I_df = pd.read_csv("Independent_post2003.csv", index_col = "DATE", parse_dates = ["DATE"])
+I_df = pd.read_csv("Independent_post2003_withlag.csv", index_col = "DATE", parse_dates = ["DATE"])
 D_df = pd.read_csv("Dependent_post2003.csv", index_col = "DATE", parse_dates = ["DATE"])
 
 # Get k-fold cross validation spilt
@@ -17,7 +17,7 @@ from sklearn.ensemble import RandomForestRegressor
 # For one dependent variable
 results = list()
 
-for d in range(D_df.shape[1]):
+for d in range(D_df.shape[1]-16):
     d = 0
     y = D_df.iloc[:,d]
     
