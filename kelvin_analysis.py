@@ -45,6 +45,13 @@ def TS_pipe(X,window_size=24):
         df[str(x) + '_MA_' + str(window_size)] = df[x].rolling(window=window_size).mean()
     return df
 
+def variable_combos(X):
+    new_df=X.copy()
+    col_pairs = list(itertools.combinations(new_df.columns, 2))
+    for a,b in col_pairs:
+        new_df[str(a)+ "," + str(b)]=new_df[a]*new_df[b]
+    return new_df
+
 I_df24 = TS_pipe(I_df_transform, window_size = 24)
 I_df24=I_df24[~(I_df24.index<'2003-01-01')]
 D_df=D_df[~(D_df.index<'2003-01-01')]
