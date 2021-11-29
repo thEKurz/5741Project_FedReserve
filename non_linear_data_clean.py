@@ -34,8 +34,22 @@ I_df_transform = pd.DataFrame(I_df_transform)
 I_df_transform.columns = I_df.columns
 I_df_transform.index = I_df.index
 
+def TS_pipe(X,window_size=24):
+    df=X
+    df_1=df
+    for window in range(1, window_size + 1):
+        shifted = df_1.shift(window)
+        df=df.join(shifted.rename(columns=lambda x: x+ "_" + str(window) + "_lag"))
+    for x in df_1.columns:
+        df[str(x) + '_MA_' + str(window_size)] = df[x].rolling(window=window_size).mean()
+    return df
+
 I_df_post_2003=I_df_transform[~(I_df_transform.index<'2003-01-01')]
 D_df_post_2003=D_df[~(D_df.index<'2003-01-01')]
 
 I_df_post_2003.to_csv("Independent_post2003.csv", index = True)
 D_df_post_2003.to_csv("Dependent_post2003.csv", index = True)
+
+I_df_pipe = TS_pipe(I_df_transform, 24)
+I_df_pipe =I_df_pipe[~(I_df_pipe.index<'2003-01-01')]
+I_df_pipe.to_csv("Independent_post2003_withlag.csv", index = True) 
