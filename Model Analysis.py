@@ -10,31 +10,7 @@ from oboe import AutoLearner, error  # This may take around 15 seconds at first 
 import time
 import numpy as np
 import itertools
-
-#bring in dataframes
-Text_DF=pd.read_csv('text_sent_1.csv',index_col='Date',parse_dates=['Date'])
-Text_DF_1=pd.read_csv('text_sent_flair.csv',index_col='Date',parse_dates=['Date'])
-Text_DF_2=pd.read_csv('text_sent_textblob.csv',index_col='Date',parse_dates=['Date'])
-I_df=pd.read_csv('Independant_Numeric_Variables.csv',index_col='DATE',parse_dates=['DATE'])
-D_df=pd.read_csv('Dependant_Numeric_Variables.csv',index_col='DATE',parse_dates=['DATE'])
-D_df.fillna(method='ffill',inplace=True)
-
-#Text_DF.set_index(pd.to_datetime(Text_DF.index), inplace=True)
-
-I_df[Text_DF.columns]=Text_DF[Text_DF.columns]
-I_df[Text_DF_1.columns]=Text_DF_1[Text_DF_1.columns]
-I_df[Text_DF_2.columns]=Text_DF_2[Text_DF_2.columns]
-I_df.fillna(method='ffill',inplace=True)
-
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer
-imp = IterativeImputer(max_iter=10, random_state=0)
-imp.fit(I_df)
-I_df_transform = imp.transform(I_df)
-
-I_df_transform = pd.DataFrame(I_df_transform)
-I_df_transform.columns = I_df.columns
-I_df_transform.index = I_df.index
+import matplotlib.pyplot as plt
 
 def TS_pipe(X,window_size=24):
     df=X
@@ -62,6 +38,52 @@ def get_coefs(coef_values,DF):
     return coef_df
 
 
+
+def coef_DF(coef_dict,i_df,R_2,R_val=.5):
+    coef_df_list=[]
+    for key in R_2:
+        if R_2[key]>=R_val:
+            coef=get_coefs(coef_dict[key],i_df)
+            coef.columns=[key]
+            coef_df_list.append(coef)
+    coef_df = pd.concat(coef_df_list, axis=1)
+    coef_df.sort_index()
+    return coef_df
+
+def acc_plot(y,y_pred,name,R2_score):
+    plt.figure()
+    plt.scatter(y,y_pred,color='g')
+    plt.title('Predicted vs Actual value of ' + str(name)+ ' R^2 Score:'+str(R2_score))
+    plt.xlabel('Actual')
+    plt.ylabel('Predicted')
+    return plt
+
+#bring in dataframes
+Text_DF=pd.read_csv('text_sent_1.csv',index_col='Date',parse_dates=['Date'])
+Text_DF_1=pd.read_csv('text_sent_flair.csv',index_col='Date',parse_dates=['Date'])
+Text_DF_2=pd.read_csv('text_sent_textblob.csv',index_col='Date',parse_dates=['Date'])
+I_df=pd.read_csv('Independant_Numeric_Variables.csv',index_col='DATE',parse_dates=['DATE'])
+D_df=pd.read_csv('Dependant_Numeric_Variables.csv',index_col='DATE',parse_dates=['DATE'])
+D_df.fillna(method='ffill',inplace=True)
+
+#Text_DF.set_index(pd.to_datetime(Text_DF.index), inplace=True)
+
+I_df[Text_DF.columns]=Text_DF[Text_DF.columns]
+I_df[Text_DF_1.columns]=Text_DF_1[Text_DF_1.columns]
+I_df[Text_DF_2.columns]=Text_DF_2[Text_DF_2.columns]
+I_df.fillna(method='ffill',inplace=True)
+
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+imp = IterativeImputer(max_iter=10, random_state=0)
+imp.fit(I_df)
+I_df_transform = imp.transform(I_df)
+
+I_df_transform = pd.DataFrame(I_df_transform)
+I_df_transform.columns = I_df.columns
+I_df_transform.index = I_df.index
+
+
 I_df_post_2003=I_df_transform[~(I_df_transform.index<'2003-01-01')]
 D_df_post_2003=D_df[~(D_df.index<'2003-01-01')]
 
@@ -84,23 +106,69 @@ lasso_alpha={}
 lasso_model={}
 lasso_R2={}
 lasso_predict={}
+lasso_y_actual={}
 for y in D_df_post_2003.columns:
     print("Working on model for " + str(y))
     X=scaler.fit_transform(I_df_LR_post_2003)
     Y=D_df_post_2003[y]
     n=y
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25, random_state=42)
-    y = LassoCV(cv=5, random_state=42,alphas=[.01,.02,.05,.1,.2,.3,.4,.5,.6,.7],max_iter=2000).fit(X_train, y_train)
+    y = LassoCV(cv=5, random_state=42,alphas=[.025,.05,.075,.1,.2,.3,.4,.5,.7],max_iter=5000).fit(X_train, y_train)
     lasso_coef[n]=y.coef_
     lasso_alpha[n]=y.alpha_   
     lasso_model[n]=y
     lasso_R2[n]=y.score(X_test,y_test)
     lasso_predict[n]=y.predict(X_test)
+    lasso_y_actual[n]=y_test
+    
 
+#get coefficients from models with R^2 >.5
+coef_df=coef_DF(lasso_coef,I_df_LR_post_2003,lasso_R2,R_val=.5)
+
+#plot predicted vs actual
+for key in lasso_y_actual:
+    j=key
+    key=acc_plot(lasso_y_actual[key],lasso_predict[key],key,round(lasso_R2[key],3))
+    key.savefig("plots/Predict_Actual/Combo/"+ str(j) + ".png")
+    
+#LR without combined features
+I_df_TS=TS_pipe(I_df_transform)
+I_df_TS_post_2003=I_df_TS[~(I_df_TS.index<'2003-01-01')]
+
+lasso_coef_TS={}
+lasso_alpha_TS={}
+lasso_model_TS={}
+lasso_R2_TS={}
+lasso_predict_TS={}
+lasso_y_actual_TS={}
+for y in D_df_post_2003.columns:
+    print("Working on model for " + str(y))
+    X=scaler.fit_transform(I_df_TS_post_2003)
+    Y=D_df_post_2003[y]
+    n=y
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25, random_state=42)
+    y = LassoCV(cv=5, random_state=42,alphas=[.025,.05,.075,.1,.2,.3,.4,.5,.7],max_iter=5000).fit(X_train, y_train)
+    lasso_coef_TS[n]=y.coef_
+    lasso_alpha_TS[n]=y.alpha_   
+    lasso_model_TS[n]=y
+    lasso_R2_TS[n]=y.score(X_test,y_test)
+    lasso_predict_TS[n]=y.predict(X_test)
+    lasso_y_actual_TS[n]=y_test
+    
+
+#get coefficients from models with R^2 >.5
+coef_df_TS=coef_DF(lasso_coef_TS,I_df_TS_post_2003,lasso_R2,R_val=.5)
+
+
+#plot predicted vs actual
+for key in lasso_y_actual_TS:
+    j=key
+    key=acc_plot(lasso_y_actual_TS[key],lasso_predict_TS[key],key,round(lasso_R2_TS[key],3))
+    key.savefig("plots/Predict_Actual/No_combo/"+ str(j) + ".png")
 #random forest
+    
+#print charts for R2 metrics, alphas, coeficients
 
-    
-    
 def model_analysis(X,y):
 
     
