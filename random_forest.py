@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import sklearn
+import sklearn.model_selection
 import matplotlib.pyplot as plt
 
 I_df = pd.read_csv("Independent_post2003_withlag.csv", index_col = "DATE", parse_dates = ["DATE"])
@@ -17,8 +18,7 @@ from sklearn.ensemble import RandomForestRegressor
 # For one dependent variable
 results = list()
 
-for d in range(D_df.shape[1]-16):
-    d = 0
+for d in range(D_df.shape[1]):
     y = D_df.iloc[:,d]
     
     max_depth = np.arange(5,18,1)
@@ -50,6 +50,13 @@ for d in range(D_df.shape[1]-16):
                 m1 = clf.fit(X_train, y_train)
                 score_table[n] = m1.score(X_test, y_test)
                 n += 1
-            
+   
             sum_score_table.loc[i,j] = np.sum(score_table)
     results.append(sum_score_table)
+    plt.scatter(y_test, m1.predict(X_test))
+    plt.show() 
+
+
+path = r"C:\Users\Kelvin\Desktop\ORIE5741_learning_with_big_messy_data\big_messy_project\5741Project_FedReserve\plots\random_forest"
+for d in range(D_df.shape[1]):
+    results[0].to_csv(D_df.columns[d]+"_model_selection_score.csv", index = True)
