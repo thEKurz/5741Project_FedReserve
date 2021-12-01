@@ -50,6 +50,26 @@ D_df_post_2003=D_df[~(D_df.index<'2003-01-01')]
 I_df_post_2003.to_csv("Independent_post2003.csv", index = True)
 D_df_post_2003.to_csv("Dependent_post2003.csv", index = True)
 
+# Data with lags
 I_df_pipe = TS_pipe(I_df_transform, 24)
 I_df_pipe =I_df_pipe[~(I_df_pipe.index<'2003-01-01')]
 I_df_pipe.to_csv("Independent_post2003_withlag.csv", index = True) 
+
+# Data with moving average buckets
+def TS_lag_buckets(X,window_size=24,lag_buckets=4):
+    bucket_size=int(window_size/lag_buckets)
+    df=X
+    df_1=df
+    for window in np.arange(1, window_size+1,bucket_size):
+        shifted = df_1.shift(window)
+        for s in range(window,window+bucket_size):
+            shifted += df_1.shift(s)
+        shifted=shifted/bucket_size
+        df=df.join(shifted.rename(columns=lambda x: x+ "_lag_" + str(window)+ "_"+str(window+bucket_size-1)))
+    for x in df_1.columns:
+        df[str(x) + '_MA_' + str(window_size)] = df[x].rolling(window=window_size).mean().copy()
+    return df
+
+I_df_buck = TS_lag_buckets(I_df_transform, 24, 4)
+I_df_buck =I_df_buck[~(I_df_buck.index<'2003-01-01')]
+I_df_buck.to_csv("Independent_post2003_buckets.csv", index = True) 
