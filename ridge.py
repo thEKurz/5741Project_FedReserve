@@ -26,7 +26,7 @@ def perform_ridge(I_df, D_df):
         for i in regularizer_coef:
             rid = Ridge(alpha= i, 
                 fit_intercept = True, 
-                normalize = False, 
+                normalize = True, 
                 tol=0.001)
             
             n = 0
