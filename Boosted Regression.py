@@ -99,5 +99,43 @@ plt.legend()
 plt.title("Model Accuracy for Different Step Sizes")
 plt.show()
 
+ y1 = D_df.iloc[:,[5,]]
+ 
+ for train_index, test_index in kf.split(I_df):
+     X_train = np.asarray(I_df.iloc[train_index,:])
+     X_test = np.asarray(I_df.iloc[test_index,:])
+     y1_train = np.asarray(y1.iloc[train_index,:])
+     y1_test = np.asarray(y1.iloc[test_index,:])
+     
+xgb_r = xgb.XGBRegressor(n_estimators = 10, max_depth = 5, learning_rate = .3,  objective='reg:squarederror')
+xgb_r.fit(X_train, y1_train)
 
+pyplot.bar(x, xgb_r.feature_importances_)
+pyplot.title('Boosted Regression Model Feature Importance for GS1')
+pyplot.xlabel('Independent Variable Features')
+pyplot.ylabel('Feature Importance')
+pyplot.xticks(rotation=90)
+pyplot.show()
+
+y2 = D_df.iloc[:,[3,]]
+ 
+for train_index, test_index in kf.split(I_df):
+    X_train = np.asarray(I_df.iloc[train_index,:])
+    X_test = np.asarray(I_df.iloc[test_index,:])
+    y2_train = np.asarray(y2.iloc[train_index,:])
+    y2_test = np.asarray(y2.iloc[test_index,:])
+     
+xgb_r = xgb.XGBRegressor(n_estimators = 50, max_depth = 25, learning_rate = .1,  objective='reg:squarederror')
+xgb_r.fit(X_train, y2_train)
+
+x = I_df.columns.tolist()
+
+pyplot.bar(x, xgb_r.feature_importances_)
+pyplot.title('Boosted Regression Model Feature Importance for Housing')
+pyplot.xlabel('Independent Variable Features')
+pyplot.ylabel('Feature Importance')
+pyplot.xticks(rotation=90)
+pyplot.show()
+
+print(xgb_r.score(X_test, y2_test))
 
