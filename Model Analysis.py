@@ -10,8 +10,14 @@ import numpy as np
 import itertools
 import matplotlib.pyplot as plt
 
+def MA(X,window_size=24):
+    df=X.copy()
+    for x in df.columns:
+        df[str(x) + '_MA_' + str(window_size)] = df[x].rolling(window=window_size).mean()
+    return df
+
 def TS_pipe(X,window_size=24):
-    df=X
+    df=X.copy()
     df_1=df
     for window in range(1, window_size + 1):
         shifted = df_1.shift(window)
@@ -22,7 +28,7 @@ def TS_pipe(X,window_size=24):
 
 def TS_lag_buckets(X,window_size=24,lag_buckets=4):
     bucket_size=int(window_size/lag_buckets)
-    df=X
+    df=X.copy()
     df_1=df
     for window in np.arange(1, window_size+1,bucket_size):
         shifted = df_1.shift(window)
@@ -69,6 +75,7 @@ def acc_plot(y,y_pred,name,R2_score):
     plt.xlabel('Actual')
     plt.ylabel('Predicted')
     return plt
+
 
 #bring in dataframes
 Text_DF=pd.read_csv('text_sent_1.csv',index_col='Date',parse_dates=['Date'])
@@ -246,6 +253,35 @@ for y in D_df_post_2003.columns:
 
 coef_df_LB_1=coef_DF(lasso_coef_LB_1,I_df_LB_post_2003_1,lasso_R2_LB_1,R_val=.5)
 
+#Lasso with MA only
+
+I_df_MA=MA(I_df_transform)
+I_df_MA_post_2003=I_df_MA[~(I_df_MA.index<'2003-01-01')]
+
+
+lasso_coef_MA={}
+lasso_alpha_MA={}
+lasso_model_MA={}
+lasso_R2_MA={}
+lasso_predict_MA={}
+lasso_y_actual_MA={}
+for y in D_df_post_2003.columns:
+    print("Working on model for " + str(y))
+    X=scaler.fit_transform(I_df_MA_post_2003)
+    Y=D_df_post_2003[y]
+    n=y
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.25, random_state=42)
+    y = LassoCV(cv=5, random_state=42,alphas=[.025,.05,.075,.1,.2,.3,.4,.5,.7],max_iter=5000).fit(X_train, y_train)
+    lasso_coef_MA[n]=y.coef_
+    lasso_alpha_MA[n]=y.alpha_   
+    lasso_model_MA[n]=y
+    lasso_R2_MA[n]=y.score(X_test,y_test)
+    lasso_predict_MA[n]=y.predict(X_test)
+    lasso_y_actual_MA[n]=y_test
+
+coef_df_MA=coef_DF(lasso_coef_MA,I_df_MA_post_2003,lasso_R2_MA,R_val=.5)
+
+"""
 #plot predicted vs actual combo vars
 for key in lasso_y_actual:
     j=key
@@ -273,37 +309,9 @@ for key in lasso_y_actual_BL:
     j=key
     key=acc_plot(lasso_y_actual_BL[key],lasso_predict_BL[key],key,round(lasso_R2_BL[key],3))
     key.savefig("plots/Predict_Actual/Baseline/"+ str(j) + ".png")
-
+"""
 #save csvs of coefs,r^2,alpha, for all models.
-lasso_alpha_TS
-lasso_R2_TS
-coef_df_TS
-lasso_alpha
-lasso_R2
-coef_df
+lasso_R2_df=pd.DataFrame([lasso_R2_BL,lasso_R2_MA,lasso_R2_LB_1,lasso_R2_TS,lasso_R2_LB,lasso_R2]).T
+lasso_R2_df.columns=['Baseline','MA','MA_Lag_Buckets','MA_Lag_buckets_Combos','MA_Mthly_Lags','MA_Mthly_lags_Combos']
 
-#random forest
-    
-#print charts for R2 metrics, alphas, coeficients
-
-def model_analysis(X,y):
-
-    
-    """
-    X_train, X_test, y_train, y_test = sk.model_selection.train_test_split(np.array(X), np.array(y), test_size=0.25, random_state=42)
-    m = AutoLearner(p_type='regression', runtime_limit=30, method='Oboe',ensemble=True, verbose=False)
-    # fit autolearner on training set and record runtime
-    start = time.time()
-    m.fit(X_train, y_train)
-    elapsed_time = time.time() - start
-    
-    # use the fitted autolearner for prediction on test set
-    y_predicted = m.predict(X_test)
-    print("prediction error: {}".format(error(np.array(y_test), y_predicted, 'classification')))    
-    print("elapsed time: {}".format(elapsed_time))
-    m.get_models()
-    """
-    
-    
-    
-    return
+coef_df_MA.to_csv("lasso_ma_coefs.csv", index = True)
