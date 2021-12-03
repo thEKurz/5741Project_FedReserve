@@ -11,10 +11,13 @@ from IPython.display import Image
 import matplotlib.pyplot as plt
 from matplotlib import pyplot
 
-I_df=pd.read_csv('Independent_post2003.csv',index_col='DATE',parse_dates=['DATE'])
-D_df=pd.read_csv('Dependent_post2003.csv',index_col='DATE',parse_dates=['DATE'])
 
-%pip install xgboost
+
+I_df_MA_1=scaler.fit_transform(I_df_MA_post_2003)
+I_df_MA_1 = pd.DataFrame(I_df_MA_1)
+I_df_MA_1.columns = I_df_MA_1.columns
+I_df_MA_1.index = I_df_MA_1.index
+
 import xgboost as xgb
 
 import sklearn
@@ -22,7 +25,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedKFold
 
 kf = sklearn.model_selection.KFold(n_splits=5)
-kf.get_n_splits(I_df)
+kf.get_n_splits(I_df_MA_1)
 
 from sklearn.metrics import mean_squared_error as MSE
 
@@ -35,17 +38,17 @@ accuracyscores = []
 
 #scores for different learning rates
 for i in range(1, 10):
-    for d in range(D_df.shape[1]):
-        y1 = D_df.iloc[:,[d,]]
+    for d in range(D_df_post_2003.shape[1]):
+        y1 = D_df_post_2003.iloc[:,[d,]]
         
-        for train_index, test_index in kf.split(I_df):
-            X_train = np.asarray(I_df.iloc[train_index,:])
-            X_test = np.asarray(I_df.iloc[test_index,:])
+        for train_index, test_index in kf.split(I_df_MA_1):
+            X_train = np.asarray(I_df_MA_1.iloc[train_index,:])
+            X_test = np.asarray(I_df_MA_1.iloc[test_index,:])
             y1_train = np.asarray(y1.iloc[train_index,:])
             y1_test = np.asarray(y1.iloc[test_index,:])
     
         
-        xgb_r = xgb.XGBRegressor(n_estimators = 10, max_depth = 5, learning_rate = i/10,  objective='reg:squarederror')
+        xgb_r = xgb.XGBRegressor(n_estimators = 50, max_depth = 25, learning_rate = i/100,  objective='reg:squarederror')
         xgb_r.fit(X_train, y1_train)
         acc1 = xgb_r.score(X_test, y1_test)
         accuracyscores.append(acc1)
