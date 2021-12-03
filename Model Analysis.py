@@ -314,3 +314,4 @@ for key in lasso_y_actual_BL:
 lasso_R2_df=pd.DataFrame([lasso_R2_BL,lasso_R2_MA,lasso_R2_LB_1,lasso_R2_TS,lasso_R2_LB,lasso_R2]).T
 lasso_R2_df.columns=['Baseline','MA','MA_Lag_Buckets','MA_Lag_buckets_Combos','MA_Mthly_Lags','MA_Mthly_lags_Combos']
 
+coef_df_MA.to_csv("lasso_ma_coefs.csv", index = True)
