@@ -48,7 +48,7 @@ for i in range(1, 10):
             y1_test = np.asarray(y1.iloc[test_index,:])
     
         
-        xgb_r = xgb.XGBRegressor(n_estimators = 50, max_depth = 25, learning_rate = i/100,  objective='reg:squarederror')
+        xgb_r = xgb.XGBRegressor(n_estimators = 50, max_depth = 25, learning_rate = i/10,  objective='reg:squarederror')
         xgb_r.fit(X_train, y1_train)
         acc1 = xgb_r.score(X_test, y1_test)
         accuracyscores.append(acc1)
@@ -73,7 +73,7 @@ df
 #best model was with LR = .3
 #Look at feature importance for this model
 
-xgb_r = xgb.XGBRegressor(n_estimators = 10, max_depth = 5, learning_rate = .3,  objective='reg:squarederror')
+xgb_r = xgb.XGBRegressor(n_estimators = 50, max_depth = 25, learning_rate = .1,  objective='reg:squarederror')
 xgb_r.fit(X_train, y1_train)
 
 pyplot.bar(range(len(xgb_r.feature_importances_)), xgb_r.feature_importances_)
@@ -95,6 +95,8 @@ plt.legend(bbox_to_anchor=(1, 1))
 plt.title("Model Accuracy for Different Step Sizes")
 plt.show()
 
+plt.plot(LR, df.iloc[3], label='CSUSHPINSA')
+plt.plot(LR, df.iloc[4], label='GDP')
 plt.plot(LR, df.iloc[5], label='GS1')
 plt.plot(LR, df.iloc[8], label='GS5')
 plt.plot(LR, df.iloc[13], label='UNRATE')
