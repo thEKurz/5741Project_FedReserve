@@ -14,3 +14,11 @@ for p in coef_df_MA.columns:
     plt.xticks(rotation=90)
     plt.ylabel('Value')
     plt.savefig("plots/Coeficient_MA_plots/coef_"+ str(p) + ".png")
+    
+plt.figure()
+plt.scatter(lasso_alpha_MA.keys(),lasso_alpha_MA.values())
+plt.title('Alpha Parameter For each Lasso Model')
+plt.xlabel('Dependent Variable')
+plt.xticks(rotation=90)
+plt.ylabel('Value')
+plt.savefig("plots/Alpha_plot.png")
