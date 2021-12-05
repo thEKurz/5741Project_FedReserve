@@ -3,7 +3,10 @@
 Created on Fri Dec  3 14:34:13 2021
 
 @author: evank
+
 """
+
+figure, axis = plt.subplots(2, 2)
 for p in coef_df_MA.columns:
     y= coef_df_MA.loc[:,p].dropna()
     x=y.index.tolist()

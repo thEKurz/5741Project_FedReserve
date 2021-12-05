@@ -281,7 +281,7 @@ for y in D_df_post_2003.columns:
 
 coef_df_MA=coef_DF(lasso_coef_MA,I_df_MA_post_2003,lasso_R2_MA,R_val=.5)
 
-"""
+
 #plot predicted vs actual combo vars
 for key in lasso_y_actual:
     j=key
@@ -309,7 +309,7 @@ for key in lasso_y_actual_BL:
     j=key
     key=acc_plot(lasso_y_actual_BL[key],lasso_predict_BL[key],key,round(lasso_R2_BL[key],3))
     key.savefig("plots/Predict_Actual/Baseline/"+ str(j) + ".png")
-"""
+
 #save csvs of coefs,r^2,alpha, for all models.
 lasso_R2_df=pd.DataFrame([lasso_R2_BL,lasso_R2_MA,lasso_R2_LB_1,lasso_R2_TS,lasso_R2_LB,lasso_R2]).T
 lasso_R2_df.columns=['Baseline','MA','MA_Lag_Buckets','MA_Lag_buckets_Combos','MA_Mthly_Lags','MA_Mthly_lags_Combos']
